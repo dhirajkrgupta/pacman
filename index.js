@@ -61,6 +61,7 @@ class Player {
         this.score = 0;
         this.i = 0;
         this.e = 0;
+        this.direction='right';
     }
 
     setVelocity(x, y) {
@@ -71,7 +72,15 @@ class Player {
         ctx.fillStyle = this.color;
         ctx.beginPath();
         ctx.moveTo(this.position.x, this.position.y);
-        ctx.arc(this.position.x, this.position.y, this.radius, Math.PI/3-this.e, 2*Math.PI-Math.PI/3+this.e, false);
+        if (this.direction === 'right') {
+            ctx.arc(this.position.x, this.position.y, this.radius, Math.PI / 3 - this.e, 2 * Math.PI - Math.PI / 3 + this.e, false);
+        } else if (this.direction == 'left') {
+            ctx.arc(this.position.x, this.position.y, this.radius, 2 * Math.PI / 3 + this.e, Math.PI + Math.PI / 3 - this.e, true);
+        } else if (this.direction == 'down') {
+            ctx.arc(this.position.x, this.position.y, this.radius,Math.PI/2- Math.PI / 3 + this.e, Math.PI/2 + Math.PI / 3 - this.e, true);
+        } else {
+            ctx.arc(this.position.x, this.position.y, this.radius,3*Math.PI/2 + this.e, 3*Math.PI/2 - this.e, false);
+        }
         ctx.fill();
         
     }
@@ -127,7 +136,7 @@ class Player {
         }
     }
     update(boundaries, pallets) {
-        this.e = Math.abs(Math.PI * Math.sin(0.1*this.i)/3);
+        this.e = Math.abs(Math.PI * Math.sin(0.2*this.i)/3);
         this.i++;
         this.draw();
         this.move(boundaries);
@@ -183,15 +192,16 @@ animate();
 
 
 const keyMap = {
-    w: { vx: 0, vy: -1 },
-    a: { vx: -1, vy: 0 },
-    s: { vx: 0, vy: 1 },
-    d: { vx: 1, vy: 0 },
+    w: { vx: 0, vy: -1,dir:'up' },
+    a: { vx: -1, vy: 0,dir:'left' },
+    s: { vx: 0, vy: 1 ,dir:'down'},
+    d: { vx: 1, vy: 0 ,dir:'right'},
 };
 const activeKeys = new Set();
 window.addEventListener('keydown', ({ key }) => {
     const lowerKey = key.toLowerCase();
     if (lowerKey in keyMap) {
+        player.direction = keyMap[lowerKey].dir;
         activeKeys.add(lowerKey);
         updatePlayerVelocity();
     }
