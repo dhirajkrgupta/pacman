@@ -5,21 +5,7 @@ const ctx = canvas.getContext('2d');
 canvas.height = window.innerHeight;
 canvas.width = window.innerWidth;
 
-const map = [
-    ['-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-'],
-    ['-', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '-'],
-    ['-', ' ', '-', ' ', '-', '-', '-', ' ', '-', ' ', '-'],
-    ['-', ' ', ' ', ' ', ' ', '-', ' ', ' ', ' ', ' ', '-'],
-    ['-', ' ', '-', '-', ' ', ' ', ' ', '-', '-', ' ', '-'],
-    ['-', ' ', ' ', ' ', ' ', '-', ' ', ' ', ' ', ' ', '-'],
-    ['-', ' ', '-', ' ', '-', '-', '-', ' ', '-', ' ', '-'],
-    ['-', ' ', ' ', ' ', ' ', '-', ' ', ' ', ' ', ' ', '-'],
-    ['-', ' ', '-', '-', ' ', ' ', ' ', '-', '-', ' ', '-'],
-    ['-', ' ', ' ', ' ', ' ', '-', ' ', ' ', ' ', ' ', '-'],
-    ['-', ' ', '-', ' ', '-', '-', '-', ' ', '-', ' ', '-'],
-    ['-', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '-'],
-    ['-', '-', '-', '-', '-', '-', '-', '-', '-', '-', '-'],
-];
+
 function CollideWithMonster(circle1, cirlce2) {
     const dx = Math.abs(circle1.position.x - cirlce2.position.x);
     const dy = Math.abs(circle1.position.y - cirlce2.position.y);
@@ -73,17 +59,7 @@ function LostTheGame() {
     ctx.textBaseline = 'middle';
 }
 
-class Boundary {
-    constructor({ position }) {
-        this.position = position;
-        this.width = 40;
-        this.height = 40;
-    }
-    draw() {
-        ctx.fillStyle = "blue";
-        ctx.fillRect(this.position.x, this.position.y, this.width, this.height);
-    }
-}
+
 
 class Pallet {
     constructor({ position }) {
@@ -100,181 +76,7 @@ class Pallet {
     }
 }
 
-class Player {
-    constructor({ position, velocity }) {
-        this.position = position;
-        this.velocity = velocity;
-        this.radius = 10;
-        this.color = "red";
-        this.speed = 1;
-        this.score = 0;
-        this.i = 0;
-        this.e = 0;
-        this.direction = 'right';
-        this.status = 'running';
-    }
 
-    setVelocity(x, y) {
-        this.velocity.x = x;
-        this.velocity.y = y;
-    }
-    draw() {
-        ctx.fillStyle = this.color;
-        ctx.beginPath();
-        ctx.moveTo(this.position.x, this.position.y);
-        if (this.direction === 'right') {
-            ctx.arc(this.position.x, this.position.y, this.radius, Math.PI / 3 - this.e, 2 * Math.PI - Math.PI / 3 + this.e, false);
-        } else if (this.direction == 'left') {
-            ctx.arc(this.position.x, this.position.y, this.radius, 2 * Math.PI / 3 + this.e, Math.PI + Math.PI / 3 - this.e, true);
-        } else if (this.direction == 'down') {
-            ctx.arc(this.position.x, this.position.y, this.radius, Math.PI / 2 - Math.PI / 3 + this.e, Math.PI / 2 + Math.PI / 3 - this.e, true);
-        } else {
-            ctx.arc(this.position.x, this.position.y, this.radius, 3 * Math.PI / 2 + this.e, 3 * Math.PI / 2 - this.e, false);
-        }
-        ctx.fill();
-
-    }
-
-    move(boundaries) {
-
-        monsters.forEach(monster => {
-            if (CollideWithMonster(this, monster)) {
-                this.status = 'out';
-                console.log("monster alert");
-
-            }
-        })
-
-        const horizontalMove = {
-            ...this,
-            velocity: { x: this.velocity.x, y: 0 }
-        };
-
-        let horizontalCollision = false;
-        for (const boundary of boundaries) {
-            if (DetectCollisionBetweenCircleAndRect(horizontalMove, boundary)) {
-                horizontalCollision = true;
-                break;
-            }
-        }
-
-
-        const verticalMove = {
-            ...this,
-            velocity: { x: 0, y: this.velocity.y }
-        };
-
-        let verticalCollision = false;
-        for (const boundary of boundaries) {
-            if (DetectCollisionBetweenCircleAndRect(verticalMove, boundary)) {
-                verticalCollision = true;
-                break;
-            }
-        }
-
-
-        if (!horizontalCollision) {
-            this.position.x += this.velocity.x;
-        }
-        if (!verticalCollision) {
-            this.position.y += this.velocity.y;
-        }
-    }
-
-    eat(pallets) {
-        for (const pallet of pallets) {
-            const dx = Math.abs(this.position.x - pallet.position.x);
-            const dy = Math.abs(this.position.y - pallet.position.y);
-            const dist = dx * dx + dy * dy;
-            if (dist < Math.pow(this.radius + pallet.radius, 2)) {
-                const i = pallets.indexOf(pallet);
-                pallets.splice(i, 1);
-                this.score += 10;
-            }
-        }
-        if (pallets.length === 0) {
-            this.status = 'win';
-        }
-    }
-    update(boundaries, pallets, monsters) {
-        this.e = Math.abs(Math.PI * Math.sin(0.2 * this.i) / 3);
-        this.i++;
-        this.draw();
-        if (this.status === 'win') {
-            WonTheGame();
-        } else if (this.status === 'out') {
-            LostTheGame();
-        } else {
-            this.move(boundaries, monsters);
-            this.eat(pallets)
-        }
-    }
-}
-
-class Monster {
-    constructor({ position, velocity }) {
-        this.position = position;
-        this.velocity = velocity;
-        this.radius = 10;
-        this.color = "pink";
-        this.speed = 2;
-    }
-
-    draw() {
-        ctx.fillStyle = this.color;
-        ctx.beginPath();
-        ctx.strokeStyle = 'red';
-        ctx.arc(this.position.x, this.position.y, this.radius, 0, Math.PI * 2, false);
-        ctx.fill();
-        ctx.closePath();
-        ctx.beginPath();
-        ctx.fillStyle = 'black';
-        ctx.arc(this.position.x - 0.423 * this.radius, this.position.y - 0.333 * this.radius, this.radius * .2, 0, Math.PI * 2, false);
-        ctx.arc(this.position.x + 0.423 * this.radius, this.position.y - 0.333 * this.radius, this.radius * .2, 0, Math.PI * 2, false);
-        ctx.fill();
-        ctx.closePath();
-
-    }
-    move(boundaries) {
-
-        const nextPosition = {
-            x: this.position.x + this.velocity.x,
-            y: this.position.y + this.velocity.y,
-        };
-
-
-        let collision = false;
-        for (const boundary of boundaries) {
-            if (DetectCollisionBetweenCircleAndRect({ ...this, position: nextPosition }, boundary)) {
-                collision = true;
-                break;
-            }
-        }
-
-
-        if (collision || Math.random() < 0.02) {
-            const directions = [
-                { x: 1, y: 0 },  // Right
-                { x: -1, y: 0 }, // Left
-                { x: 0, y: 1 },  // Down
-                { x: 0, y: -1 }, // Up
-            ];
-            const randomDirection = directions[Math.floor(Math.random() * directions.length)];
-            this.velocity.x = randomDirection.x * this.speed;
-            this.velocity.y = randomDirection.y * this.speed;
-        } else {
-            this.position.x += this.velocity.x;
-            this.position.y += this.velocity.y;
-        }
-    }
-
-
-    update(boundaries, player) {
-        this.draw();
-        this.move(boundaries)
-        this.color = `hsl(${250 * Math.random() + 50},100%,50%)`
-    }
-}
 
 
 
